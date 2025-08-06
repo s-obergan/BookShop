@@ -1,5 +1,6 @@
 ﻿using BookShop.Data.DTOs;
 using BookShop.Data.Entities;
+using BookShop.Data.Exceptions;
 using BookShop.Data.Repository;
 using System;
 namespace BookShop.Data.Services
@@ -26,8 +27,23 @@ namespace BookShop.Data.Services
 
         public IEnumerable<OrderDto> Filter(int id = 0, DateOnly? date = null)
         {
-            var orders = _orderRepository.Filter(id, date);
-            return orders.Select(ConvertToDto);
+            try
+            {
+                var orders = _orderRepository.Filter(id, date);
+                
+                //if orders were not found we can throw NotFoundException here and handle in API controller with corresponding HTTP code
+                //whether we should make it depends on preferences and project guidelines/architerture 
+
+                return orders.Select(ConvertToDto);
+            }
+            catch (RepositoryException ex)
+            {
+                throw new ServiceException("Error searching books", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new ServiceException("Some error message", ex);
+            }
         }
 
         protected override OrderDto ConvertToDto(Order entity)

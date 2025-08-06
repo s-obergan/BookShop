@@ -1,4 +1,5 @@
 ﻿using BookShop.Data.Entities;
+using BookShop.Data.Exceptions;
 
 namespace BookShop.Data.Repository
 {
@@ -8,10 +9,17 @@ namespace BookShop.Data.Repository
 
         public int Add(Book book)
         {
-            _context.Books.Add(book);
-            _context.SaveChanges();
+            try
+            {
+                _context.Books.Add(book);
+                _context.SaveChanges();
 
-            return book.BookId;
+                return book.BookId;
+            }
+            catch (Exception ex)
+            {
+                throw new RepositoryException("Error adding a new book", ex);
+            }
         }
 
         public List<Book> Filter(string? title = null, DateOnly? date = null)
