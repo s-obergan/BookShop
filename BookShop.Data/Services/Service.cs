@@ -1,4 +1,5 @@
-﻿using BookShop.Data.Repository;
+﻿using BookShop.Data.Exceptions;
+using BookShop.Data.Repository;
 
 namespace BookShop.Data.Services
 {
@@ -19,8 +20,22 @@ namespace BookShop.Data.Services
 
         public virtual TDto GetById(int id)
         {
-            var entity = _repository.GetById(id);
-            return ConvertToDto(entity);
+            if(id <= 0)
+                throw new ServiceException("Invalid entity ID");
+
+            try
+            {
+                var entity = _repository.GetById(id);
+
+                if (entity == null)
+                    throw new NotFoundException($"Entity with ID {id} was not found");
+
+                return ConvertToDto(entity);
+            }
+            catch(RepositoryException ex)
+            {
+                throw new ServiceException("Error accessing data", ex);
+            }
         }
 
         protected abstract TDto ConvertToDto(TEntity entity);

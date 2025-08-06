@@ -1,4 +1,5 @@
 ﻿using BookShop.Data.DTOs;
+using BookShop.Data.Exceptions;
 using BookShop.Data.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -56,7 +57,18 @@ namespace BookShop.Api.Controllers
         [Tags("Books")]
         public IActionResult GetBookById(int id)
         {
-            return Ok(_bookService.GetById(id));
+            try
+            {
+                return Ok(_bookService.GetById(id));
+            }
+            catch(NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch(ServiceException ex)
+            {
+                return StatusCode(500, "An error occured while processing your request");
+            }
         }
 
         /// <summary>
@@ -73,9 +85,9 @@ namespace BookShop.Api.Controllers
                 int bookId =_bookService.Add(bookDto);
                 return CreatedAtAction(nameof(AddBook), new { id = bookId });
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
-                return StatusCode(500, $"An error occurred while processing your request./n {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request");
             }
         }
 
@@ -89,14 +101,21 @@ namespace BookShop.Api.Controllers
         [Tags("Books")]
         public IActionResult SearchBooks([FromQuery] string? title, [FromQuery] string? date)
         {
-            DateOnly? parsedDate = null;
-            if (!String.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var dateValue))
+            try
             {
-                parsedDate = dateValue;
-            }
+                DateOnly? parsedDate = null;
+                if (!String.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var dateValue))
+                {
+                    parsedDate = dateValue;
+                }
 
-            var result = _bookService.Filter(title, parsedDate);
-            return Ok(result);
+                var result = _bookService.Filter(title, parsedDate);
+                return Ok(result);
+            }
+            catch (ServiceException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request");
+            }
         }
 
         /// <summary>
@@ -108,7 +127,18 @@ namespace BookShop.Api.Controllers
         [Tags("Orders")]
         public IActionResult GetOrder(int id)
         {
-            return Ok(_orderService.GetById(id));
+            try
+            {
+                return Ok(_orderService.GetById(id));
+            }
+            catch (NotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ServiceException ex)
+            {
+                return StatusCode(500, "An error occured while processing your request");
+            }
         }
         /// <summary>
         /// Adds a new order to database.
@@ -124,9 +154,9 @@ namespace BookShop.Api.Controllers
                 int orderId = _orderService.Add(orderDto);
                 return CreatedAtAction(nameof(AddOrder), new { id = orderId});
             }
-            catch (Exception ex)
+            catch (ServiceException ex)
             {
-                return StatusCode(500, $"An error occurred while processing your request./n {ex.Message}");
+                return StatusCode(500, "An error occurred while processing your request");
             }
         }
 
@@ -140,14 +170,21 @@ namespace BookShop.Api.Controllers
         [Tags("Orders")]
         public IActionResult SearchOrders([FromQuery] int id, [FromQuery] string? date)
         {
-            DateOnly? parsedDate = null;
-            if (!String.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var dateValue))
+            try
             {
-                parsedDate = dateValue;
-            }
+                DateOnly? parsedDate = null;
+                if (!String.IsNullOrWhiteSpace(date) && DateOnly.TryParse(date, out var dateValue))
+                {
+                    parsedDate = dateValue;
+                }
 
-            var result = _orderService.Filter(id, parsedDate);
-            return Ok(result);
+                var result = _orderService.Filter(id, parsedDate);
+                return Ok(result);
+            }
+            catch(ServiceException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request");
+            }
         }
     }
 }
